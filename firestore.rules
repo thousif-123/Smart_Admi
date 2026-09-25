@@ -1,0 +1,111 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {uid}
+    // Fields:
+    //   - uid: string (required) - Firebase Auth UID
+    //   - email: string (required) - User's email
+    //   - displayName: string (optional) - User's display name
+    //   - role: string (required, enum: ['student', 'admin']) - User's role
+    //   - createdAt: timestamp (required) - Creation time
+    //
+    // Collection: applications
+    // Document ID: {applicationId}
+    // Fields:
+    //   - id: string (required) - Unique application ID
+    //   - studentUid: string (required) - UID of the student who applied
+    //   - studentName: string (required) - Name of the student
+    //   - dob: string (optional) - Date of birth
+    //   - address: string (optional) - Address
+    //   - math: number (optional) - Math marks
+    //   - physics: number (optional) - Physics marks
+    //   - chemistry: number (optional) - Chemistry marks
+    //   - course: string (required) - Selected course
+    //   - sop: string (optional) - Statement of Purpose
+    //   - status: string (required, enum: ['Pending', 'Under Review', 'Approved', 'Rejected']) - Current status
+    //   - fraudScore: number (optional) - AI fraud score
+    //   - ocrData: string (optional) - OCR extracted text
+    //   - aiRecommendation: string (optional) - AI recommendation
+    //   - feedback: string (optional) - AI feedback
+    //   - createdAt: timestamp (required) - Creation time
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.email == "skthousif474@gmail.com" || 
+         request.auth.token.email == "faculty@meritmatrix.ai");
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'role', 'createdAt']) &&
+             data.uid == request.auth.uid &&
+             data.role in ['student', 'admin'] &&
+             data.uid is string &&
+             data.email is string &&
+             data.role is string;
+    }
+
+    function isValidApplication(data) {
+      return data.keys().hasAll(['studentUid', 'fullName', 'preferredCourse', 'status', 'createdAt']) &&
+             data.studentUid is string &&
+             data.fullName is string &&
+             data.fullName.size() < 100 &&
+             data.preferredCourse is string &&
+             data.status in ['Pending', 'Under Review', 'Approved', 'Rejected', 'Under Manual Verification', 'Draft'] &&
+             data.status is string;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid) && isValidUser(request.resource.data) && (request.resource.data.role == 'student' || isAdmin());
+      allow update: if isOwner(uid) && isValidUser(request.resource.data) && request.resource.data.role == resource.data.role;
+    }
+
+    match /applications/{applicationId} {
+      allow read: if isAuthenticated() && (resource.data.studentUid == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && isValidApplication(request.resource.data) && request.resource.data.studentUid == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        (resource.data.studentUid == request.auth.uid && isValidApplication(request.resource.data) && request.resource.data.status == resource.data.status) ||
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /ml_training_data/{documentId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /ml_metadata/{documentId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && (resource.data.studentUid == request.auth.uid || isAdmin());
+      allow write: if isAdmin();
+    }
+  }
+}

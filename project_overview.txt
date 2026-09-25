@@ -1,0 +1,110 @@
+========================================================================
+             SMARTADMI ADMISSION SYSTEM - PROJECT OVERVIEW
+========================================================================
+
+Welcome! This document provides a highly structured technical overview of the 
+Smart College Admission System. It includes the structural system flow diagram 
+and a concise list of the core methods mapped for direct academic (IEEE) use.
+
+---
+
+1. SYSTEM ARCHITECTURE FLOW DIAGRAM
+------------------------------------------------------------------------
+
+           +---------------------------------------+
+           |     1. Candidate Form Submission      |
+           |  (Student details & PDF Certificates) |
+           +-------------------+-------------------+
+                               |
+                               v
+           +-------------------+-------------------+
+           |    2. Automated Security Verification  |
+           |  - Duplicate Check (Hall Ticket ID)   |
+           |  - Image ELA Forensic Scan            |
+           +-------------------+-------------------+
+                               |
+                               v
+           +-------------------+-------------------+
+           |   3. Multi-Modal OCR Feature Extract   |
+           |  (Verify extracted grades vs declared) |
+           +-------------------+-------------------+
+                               |
+                               v
+           +-------------------+-------------------+
+           |    4. Multi-Criteria Gatekeeping      |
+           |   (Unbiased Board Decision Logic)     |
+           +--------+------------------+-----------+
+                    |                  |
+         [Approve]  |                  | [Reject]
+                    v                  v
++-------------------+---+          +---+-------------------+
+| 5. Automated Enrollment|          | 5. Cascade Cleanup &  |
+| - Google Docs Offer   |          |    Re-registration    |
+| - Custom SOP Synthesis|          |    Possibility        |
++-------------------+---+          +-----------------------+
+                    |
+                    v
++-------------------+--------------------------------------+
+|           6. Real-Time Status Notification           |
+|            (SMTP Email Relay Updates)                |
++----------------------------------------------------------+
+
+---
+
+2. SYSTEM METHODOLOGIES & RELEVANT ENDPOINTS (IEEE Reference)
+------------------------------------------------------------------------
+
+Each method below is formatted for seamless transposition into the 
+Methodology/Implementation sections of an IEEE peer-reviewed paper.
+
+METHOD 1: Multi-Modal Document Extraction and OCR Parsing (POST /api/extract-ocr)
+Leverages a deep multi-modal vision-language model to extract structured scholastic 
+metrics directly from scanned raw documents, using normalized Levenshtein distance string 
+similarity metrics to verify the authenticity of candidate-declared personal profiles.
+
+METHOD 2: Risk Scoring and Fraud Analysis Engine (POST /api/detect-fraud)
+Aggregates visual, text, and metadata discrepancy indicators through a normalized 
+weighted linear combination to compute an Integrity Confidence Index, identifying 
+grade inflation and forged credentials for immediate manual board auditing.
+
+METHOD 3: Multi-Criteria AI Course Recommendation Engine (POST /api/recommend-courses)
+Maps student academic scores and career interests to engineering disciplines using 
+probabilistic semantic routing, with a robust rule-based deterministic classifier 
+acting as a local backup system during network latencies.
+
+METHOD 4: Automated Final Admission Decision Optimizer (POST /api/get-final-decision)
+Applies a multi-dimensional threshold classifier on candidate marks, entrance ranks, and 
+document integrity scores to dynamically output automated and unbiased recommendations 
+(Approve, Reject, or Manual Audit) for the university admission board.
+
+METHOD 5: LLM-Based Statement of Purpose (SOP) Synthesis (POST /api/generate-sop)
+Employs prompt engineering and conditional auto-regressive language generation to synthesize 
+highly customized, multi-section Statements of Purpose mapped precisely to the candidate's 
+academic history and targeted collegiate engineering branch.
+
+METHOD 6: Cryptographic Duplicate Prevention and Ticket Guard (GET /api/check-duplicate-hall-ticket)
+Enforces uniqueness on the candidate registration pipeline by utilizing a deterministic index 
+lookup to match exam ticket identifiers, preventing identity theft and redundant 
+transactions prior to record registration.
+
+METHOD 7: Cross-Platform Document Export and OAuth Integration (POST /api/export-offer)
+Integrates federated token-based identity delegation via OAuth 2.0 with the Google Docs and 
+Drive APIs, translating successful admission parameters into a legally binding, dynamically 
+rendered official Admission Offer Letter saved in the applicant's Cloud workspace.
+
+METHOD 8: Event-Driven State Change & SMTP Relay Dispatcher (POST /api/send-status-email)
+Triggers real-time notification dispatches via database state transitions, compiling and 
+routing transactional updates and board decisions directly to the candidate's active email 
+address with detailed scholastic feedback.
+
+METHOD 9: Transactional Cascade Deletion and Re-Registration (DELETE /api/applications/:id)
+Ensures relational state integrity within the system database by executing an atomic, cascading 
+deletion of rejected application entries, allowing applicants to safely re-register without 
+causing indexing conflicts.
+
+METHOD 10: Re-Compression Error Level Analysis (ELA) for Advanced Forensics
+Compresses uploaded document images at a reference quality factor to highlight compression rate 
+discrepancies, calculating absolute pixel-level difference matrices and analyzing localized block 
+variance to detect localized image editing, copy-move, and splicing anomalies.
+
+========================================================================

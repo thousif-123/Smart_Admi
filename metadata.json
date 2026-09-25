@@ -1,0 +1,6 @@
+{
+  "name": "SmartAdmi Admission System",
+  "description": "A full-stack AI-powered admission platform with OCR verification, fraud detection, and smart decision making.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

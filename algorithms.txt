@@ -1,0 +1,54 @@
+========================================================================
+             SMARTADMI ADMISSION SYSTEM - ALGORITHMS COMPENDIUM
+========================================================================
+
+This document lists the core algorithms utilized in the SmartAdmi Admission 
+System, along with concise 3-line technical descriptions designed for inclusion 
+in academic (IEEE) publications.
+
+---
+
+1. ALGORITHM 1: DUAL-LAYER MULTI-MODAL OCR TEXT EXTRACTION & VERIFICATION
+------------------------------------------------------------------------
+Utilizes a deep multi-modal vision-language model to extract structured data 
+(student name, grade percentages, hall ticket ID) from uploaded credentials, 
+subsequently applying normalized Levenshtein distance string similarity matching 
+to verify the integrity of candidate-reported scholastic details.
+
+---
+
+2. ALGORITHM 2: MULTI-CRITERIA FRAUD DETECTION AND CONFIDENCE INDEXING
+------------------------------------------------------------------------
+Evaluates a weighted linear combination of anomaly indicator vectors—including 
+name discrepancies, mark inflation, duplicate exam card usage, and layout 
+inconsistencies—to compute a normalized [0-100] document integrity confidence 
+index for automatic security threat classification.
+
+---
+
+3. ALGORITHM 3: HYBRID BRANCH ADVISING ENGINE
+------------------------------------------------------------------------
+Combines probabilistic semantic routing from an LLM with a deterministic, 
+rule-based threshold tree that checks mathematics, physics, and chemistry 
+competence criteria to map applicant profiles to optimal engineering 
+departments even during network connection dropouts.
+
+---
+
+4. ALGORITHM 4: GATEKEEPING ADMISSION DECISION CLASSIFIER
+------------------------------------------------------------------------
+Applies a threshold-based decision matrix across raw grade averages, state 
+entrance examination rankings, and document integrity scores to instantly 
+classify and route incoming applications into approved, rejected, or manual 
+administrative review state queues.
+
+---
+
+5. ALGORITHM 5: RE-COMPRESSION ERROR LEVEL ANALYSIS (ELA)
+------------------------------------------------------------------------
+Performs spatial pixel digital signal processing by compressing an uploaded 
+JPEG document at a reference quality, calculating the channel-by-channel 
+absolute difference map, and applying local block-variance analysis to 
+automatically flag localized pixel tampering and image splicing anomalies.
+
+========================================================================

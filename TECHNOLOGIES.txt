@@ -1,0 +1,136 @@
+================================================================================
+          MERITMATRIX AI - ADMISSION SYSTEM: TECHNOLOGIES & USE CASES
+================================================================================
+
+This document details the complete technology stack, frameworks, services, and
+utility libraries utilized in the development and production deployment of this
+full-stack Admission System website, along with their respective use cases.
+
+--------------------------------------------------------------------------------
+1. CORE RUNTIMES, LANGUAGES & BUILD TOOLS
+--------------------------------------------------------------------------------
+
+* Node.js (v18 / v20 / v22)
+  - Use Case: The main server-side runtime environment executing the backend
+    Express API, background listening tasks, and developer build scripts.
+
+* TypeScript (v5.8)
+  - Use Case: Serves as the primary programming language for both client-side
+    React components and server-side scripts. It enforces strict type-safety,
+    interfaces, and compile-time checks, ensuring robust and error-free code.
+
+* Vite (v6.2)
+  - Use Case: An ultra-fast build tool and development server that compiles
+    and bundles client-side React assets, manages Hot Module Replacement (HMR) 
+    configurations, and optimizes assets for production deployment.
+
+* esbuild (v0.28)
+  - Use Case: High-performance JS/TS bundler used in the production build pipeline
+    to compile the server-side TypeScript entry point (`server.ts`) into a 
+    fully-contained, single CommonJS file (`dist/server.cjs`) for deployment.
+
+* tsx (v4.21)
+  - Use Case: Node.js execution tool used in local development to run the 
+    TypeScript backend (`server.ts`) directly without ahead-of-time compilation.
+
+--------------------------------------------------------------------------------
+2. FRONTEND FRAMEWORK & ROUTING
+--------------------------------------------------------------------------------
+
+* React (v19.0)
+  - Use Case: The core library for crafting the user interface. It powers the 
+    application's component-based architecture, dynamic state management, and 
+    virtual DOM rendering.
+
+* React Router DOM (v7.14)
+  - Use Case: Manages client-side page routing and state parameters, facilitating
+    smooth navigation across dashboards, admission forms, and administration pages
+    without reloading the web page.
+
+--------------------------------------------------------------------------------
+3. DATABASE & PERSISTENCE
+--------------------------------------------------------------------------------
+
+* Firebase Client SDK (v12.11)
+  - Use Case: Enables the frontend application to interact directly with the 
+    Cloud Firestore database. It is used for real-time data subscription, student 
+    application submissions, and viewing status updates.
+
+* Firebase Admin SDK (v14.1)
+  - Use Case: Used on the Express backend server to perform administrative 
+    database actions with elevated privileges. This includes running secure,
+    server-side duplications checks (such as hall ticket verifications) and 
+    executing secure batch processing bypassing client-side database rules.
+
+--------------------------------------------------------------------------------
+4. ARTIFICIAL INTELLIGENCE & BUSINESS LOGIC
+--------------------------------------------------------------------------------
+
+* Google GenAI SDK (@google/genai v1.48)
+  - Use Case: Integrates the Gemini API model server-side (using secure API keys)
+    to perform smart evaluations, automatic form categorization, fraud-detection 
+    analysis, and instant, personalized feedback generation for applicant profiles.
+
+--------------------------------------------------------------------------------
+5. BACKEND API & COMMUNICATION
+--------------------------------------------------------------------------------
+
+* Express.js (v4.21)
+  - Use Case: The lightweight web framework used to spin up backend REST API
+    endpoints. It proxies requests that involve sensitive credentials (like duplicate 
+    checking and email notifications), shielding private secrets from the browser.
+
+* Nodemailer (v9.0)
+  - Use Case: A server-side module configured to send automated emails (such as 
+    admission status updates, acceptances, and rejection notifications) directly 
+    to applicants.
+
+* Dotenv (v17.2)
+  - Use Case: Loads sensitive system credentials, database identifiers, and keys 
+    from the `.env` file into `process.env` securely at application startup.
+
+--------------------------------------------------------------------------------
+6. UI ARCHITECTURE, STYLING & ANIMATION
+--------------------------------------------------------------------------------
+
+* Tailwind CSS (v4.1) & @tailwindcss/vite
+  - Use Case: The utility-first styling engine utilized to design a polished, 
+    highly responsive, and fluid responsive UI layout across mobile, tablet, and 
+    desktop screens.
+
+* Motion (v12.38) [formerly Framer Motion]
+  - Use Case: Powers fluid layout animations, transition triggers, stagger effects, 
+    and interactive micro-animations when routing or submitting elements.
+
+* Lucide React (v0.546)
+  - Use Case: Provides a collection of clean, modern vector SVG icons utilized 
+    throughout dashboards, badges, action buttons, and status indicator tags.
+
+* Sonner (v2.0)
+  - Use Case: Renders slick, customizable toast notifications in the top-right 
+    corner of the screen for instant feedback upon success, warning, or error states.
+
+* Base UI & Shadcn (v4.2)
+  - Use Case: Provides accessible, custom-styled foundational components 
+    supporting modal transitions, dialogues, inputs, and interactive overlays.
+
+* Next Themes (v0.4)
+  - Use Case: Manages local styling themes, enabling dynamic color palette shifts.
+
+--------------------------------------------------------------------------------
+7. FORM MANAGEMENT, SCHEMA & UTILITIES
+--------------------------------------------------------------------------------
+
+* React Hook Form (v7.72)
+  - Use Case: Handles client-side form registration, tracking, performance-optimized 
+    input states, and submission processes for admission applications.
+
+* Zod (v4.3) & @hookform/resolvers
+  - Use Case: A TypeScript-first schema declaration and validation library. It is 
+    used to declare rigid schemas for student forms, automatically detecting and 
+    surfacing formatting validation errors prior to submission.
+
+* clsx & tailwind-merge & class-variance-authority (cva)
+  - Use Case: Utility functions used to safely and conditionally concatenate Tailwind 
+    class strings, resolve style conflicts, and create structured component variants.
+================================================================================

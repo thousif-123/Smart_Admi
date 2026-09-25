@@ -1,0 +1,72 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user profile information and roles.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The unique Firebase Auth UID." },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["student", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Application": {
+      "title": "Admission Application",
+      "description": "Stores admission application details, OCR data, and AI evaluation results.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentUid": { "type": "string" },
+        "studentName": { "type": "string" },
+        "dob": { "type": "string" },
+        "address": { "type": "string" },
+        "math": { "type": "number" },
+        "physics": { "type": "number" },
+        "chemistry": { "type": "number" },
+        "course": { "type": "string" },
+        "sop": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "Under Review", "Approved", "Rejected"] },
+        "fraudScore": { "type": "number" },
+        "ocrData": { "type": "string" },
+        "aiRecommendation": { "type": "string" },
+        "feedback": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentUid", "studentName", "course", "status"]
+    },
+    "Notification": {
+      "title": "Automated Email Notification",
+      "description": "Stores automated email notifications dispatched to students.",
+      "type": "object",
+      "properties": {
+        "studentUid": { "type": "string" },
+        "studentEmail": { "type": "string" },
+        "studentName": { "type": "string" },
+        "status": { "type": "string" },
+        "course": { "type": "string" },
+        "subject": { "type": "string" },
+        "body": { "type": "string" },
+        "sentAt": { "type": "string", "format": "date-time" },
+        "type": { "type": "string" }
+      },
+      "required": ["studentUid", "studentEmail", "studentName", "status", "course", "subject", "body", "type"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "User profile documents."
+    },
+    "/applications/{applicationId}": {
+      "schema": "Application",
+      "description": "Admission application documents."
+    },
+    "/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "Automated notification log documents."
+    }
+  }
+}

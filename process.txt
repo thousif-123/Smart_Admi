@@ -1,0 +1,166 @@
+======================================================================
+     HOW TO DOWNLOAD AND RUN THIS PROJECT ON YOUR LOCAL MACHINE
+======================================================================
+
+A simple, step-by-step guide for beginners to download, install, and 
+run this premium web application on your own computer, including how
+to set up and configure your own Firebase Database!
+
+----------------------------------------------------------------------
+STEP 1: DOWNLOAD THE CODE ZIP FROM GOOGLE AI STUDIO
+----------------------------------------------------------------------
+1. Look at the top-right corner of your Google AI Studio Build workspace.
+2. Click on the "Settings" gear icon or the "Export" menu.
+3. Click on "Download as ZIP" (or "Export as ZIP").
+4. Choose a folder on your computer (for example, your Desktop or Documents) 
+   and save the file.
+5. Right-click the downloaded `.zip` file and select "Extract All..." or 
+   "Unzip" to unpack the project files into a normal folder.
+
+----------------------------------------------------------------------
+STEP 2: INSTALL THE REQUIRED FREE SOFTWARE
+----------------------------------------------------------------------
+Before running the code, your computer needs two simple, free tools:
+
+1. Node.js (Crucial - this runs the server & website locally):
+   - Go to: https://nodejs.org/
+   - Download the version labeled "LTS" (Recommended for Most Users).
+   - Double-click the downloaded file and install it by clicking "Next" 
+     on all the prompts.
+
+2. VS Code (A clean text/code editor):
+   - Go to: https://code.visualstudio.com/
+   - Download and install it for your computer (Windows, Mac, or Linux).
+
+----------------------------------------------------------------------
+STEP 3: OPEN THE PROJECT IN VS CODE
+----------------------------------------------------------------------
+1. Open Visual Studio Code (VS Code).
+2. Go to the top menu and select: File -> Open Folder.
+3. Navigate to the folder you unzipped in STEP 1, select it, and click "Open".
+
+----------------------------------------------------------------------
+STEP 4: UNDERSTANDING FIREBASE CONFIGURATION (CRITICAL)
+----------------------------------------------------------------------
+This application uses Firebase for User Authentication and the Firestore 
+Database (storing university databases, AI analytics, notes, and records).
+
+The downloaded folder ALREADY contains a file called:
+`firebase-applet-config.json`
+
+Because this file is already included, the app will work immediately 
+using the development project database! However, if you want to run it completely 
+independently, share it with others, or host your own database, you must 
+create your own FREE Firebase project. Follow the steps below to do this:
+
+>>> HOW TO SET UP YOUR OWN FIREBASE PROJECT (STEP-BY-STEP):
+
+1. Create a Firebase Project:
+   - Go to the Firebase Console: https://console.firebase.google.com/
+   - Sign in with your Google account.
+   - Click "Add Project" (or "Create a Project"). Name it "SmartAdmi" 
+     and click Continue.
+   - You can disable Google Analytics for this local project, then click 
+     "Create Project".
+
+2. Register a Web App inside Firebase:
+   - Once your project dashboard loads, click the Web icon (looks like `</>`) 
+     in the center of the screen to add a Web App.
+   - Enter an App nickname (e.g., "SmartAdmi Local") and click "Register app".
+   - Firebase will display a set of configuration keys (looks like a list 
+     containing `apiKey`, `authDomain`, `projectId`, etc.). Keep this open!
+
+3. Enable Firebase Authentication (Sign-In):
+   - In the left sidebar of the Firebase console, click on "Authentication", 
+     then click "Get Started".
+   - Go to the "Sign-in method" tab.
+   - Click "Email/Password", toggle it to "Enabled", and click "Save".
+   - Click "Add new provider", select "Google", toggle "Enable", choose a 
+     project support email from the dropdown, and click "Save".
+
+4. Enable Firestore Database:
+   - In the left sidebar, click on "Firestore Database", then click "Create database".
+   - Choose a location closest to you and click "Next".
+   - Choose "Start in test mode" (this is perfect for development so you don't 
+     get blocked by security rules locally) and click "Create".
+
+5. Update the Config File in VS Code:
+   - Go to VS Code and open the `firebase-applet-config.json` file.
+   - Replace the values in that file with the ones from your new Firebase Web App!
+   - Example configuration template:
+     {
+       "projectId": "your-new-project-id",
+       "appId": "your-new-app-id",
+       "apiKey": "your-new-api-key",
+       "authDomain": "your-new-project-id.firebaseapp.com",
+       "firestoreDatabaseId": "(default)",
+       "storageBucket": "your-new-project-id.firebasestorage.app",
+       "messagingSenderId": "your-new-messaging-sender-id",
+       "measurementId": ""
+     }
+   - Save the file!
+
+6. Optional: Setup Server-Side Firebase Admin (For Background Status Listener & Emails):
+   By default, the client-side of your app is fully connected to Firestore and works perfectly out-of-the-box!
+   However, the server-side backend of your app (the Node.js code running on `server.ts`) needs special administrative permissions (called a "Service Account") to run background listeners and send automated emails when statuses change.
+   
+   If you run without this key, the website will still run perfectly but will simply show a warning in the console and disable server-side email features.
+   
+   To enable full server-side features locally:
+   - Go to your Firebase Console: https://console.firebase.google.com/
+   - Click the gear icon (⚙️) next to "Project Overview" in the top-left sidebar, and click "Project settings".
+   - Click on the "Service accounts" tab.
+   - Select "Node.js" and click the blue "Generate new private key" button.
+   - Click "Generate key" to download a private `.json` file to your computer.
+   - Copy this downloaded JSON file, paste it into your unzipped project's main folder (next to `package.json`), and rename the file to exactly:
+     `firebase-service-account.json`
+   - That's it! When you run the project, the server will automatically detect this file and initialize perfectly without any credential crashes!
+
+----------------------------------------------------------------------
+STEP 5: INSTALL PROJECT DEPENDENCIES
+----------------------------------------------------------------------
+We need to download the official code packages (like React, Tailwind, and 
+Three.js libraries) that make our application work.
+
+1. Inside VS Code, open the built-in terminal:
+   - Go to the top menu and select: Terminal -> New Terminal.
+   - You will see a command prompt/box open at the bottom of VS Code.
+2. Type the following command in that terminal and press Enter:
+   
+   npm install
+
+3. Wait a minute or two. Once completed, a folder called `node_modules` 
+   will automatically appear in your sidebar list.
+
+----------------------------------------------------------------------
+STEP 6: RUN THE WEBSITE LOCALLY
+----------------------------------------------------------------------
+1. In the exact same terminal at the bottom of VS Code, type this 
+   command and press Enter:
+
+   npm run dev
+
+2. The server will boot up in 1-2 seconds! You will see output like:
+   Local:   http://localhost:3000/
+
+3. Hold Ctrl (or Command on Mac) and click that link, or open your web 
+   browser (Chrome, Edge, Safari, etc.) and type:
+   http://localhost:3000
+
+🎉 Congratulations! Your premium 3D SmartAdmi application is now running 
+   privately and smoothly on your local machine, fully backed by your 
+   own database!
+
+----------------------------------------------------------------------
+QUICK TROUBLESHOOTING TIPS:
+----------------------------------------------------------------------
+* If the server doesn't start or throws an error:
+  Make sure you ran `npm install` successfully first.
+* If you cannot sign in:
+  Verify that you enabled BOTH "Email/Password" and "Google" in the 
+  "Authentication" tab of your Firebase Console.
+* If you cannot save or load data:
+  Verify that you created a "Firestore Database" in the Firebase Console.
+* To stop the website from running: 
+  Go to the terminal in VS Code and press "Ctrl + C" on your keyboard.
+======================================================================
