@@ -40,7 +40,8 @@ import { getResearchSandboxMode, setResearchSandboxMode } from "./src/lib/visual
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  // const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3000;
 
   console.log(`Gemini integration ${isApiKeyValid() ? 'configured' : 'not configured; forensic fallback is active'}.`);
 
