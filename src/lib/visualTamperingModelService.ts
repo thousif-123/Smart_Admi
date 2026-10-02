@@ -303,7 +303,7 @@ function decodeRaster(source: string): Raster | null {
     const bytes = base64ToBytes(encoded);
     if (bytes[0] === 0xff && bytes[1] === 0xd8) {
       const image = jpeg.decode(bytes, { useTArray: true });
-      return { width: image.width, height: image.height, data: image.data };
+      return { width: image.width, height: image.height, data: Buffer.from(image.data) };
     }
   } catch (error) {
     console.warn('[DOCUMENT COMPARISON] Could not decode comparison image:', error);

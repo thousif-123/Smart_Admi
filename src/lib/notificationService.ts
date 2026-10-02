@@ -20,68 +20,92 @@ export let adminDb: Firestore | null = null;
 export let isFirebaseAdminInitialized = false;
 
 try {
-  if (firebaseConfig.projectId) {
-    let app: App | null = null;
-    const serviceAccountPath = path.join(process.cwd(), 'firebase-service-account.json');
-    const hasServiceAccount = fs.existsSync(serviceAccountPath);
-    const isProduction = process.env.NODE_ENV === 'production';
+  let app: App | null = null;
+  const serviceAccountPath = path.join(process.cwd(), 'firebase-service-account.json');
+  const hasServiceAccountFile = fs.existsSync(serviceAccountPath);
 
-    if (getApps().length === 0) {
-      if (hasServiceAccount) {
+  if (getApps().length === 0) {
+    // Priority A: Local firebase-service-account.json file
+    if (hasServiceAccountFile) {
+      try {
         const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+        const targetProjectId = serviceAccount.project_id || serviceAccount.projectId || firebaseConfig.projectId;
         app = initializeApp({
           credential: cert(serviceAccount),
-          projectId: firebaseConfig.projectId
+          projectId: targetProjectId
         });
-        console.log('[NOTIFICATION SERVICE] Initialized Firebase Admin using local service account key.');
-      } else if (isProduction) {
-        // Cloud Run supplies Application Default Credentials in production.
-        // Do not attempt ADC on a developer machine: it triggers Google Auth's
-        // credential lookup and can crash the local server when no account is configured.
-        try {
-          app = initializeApp({
-            projectId: firebaseConfig.projectId
-          });
-          console.log('[NOTIFICATION SERVICE] Initialized Firebase Admin using Application Default Credentials (ADC) or environmental credentials.');
-        } catch (adcErr) {
-          console.warn('[NOTIFICATION SERVICE] Failed to initialize Firebase Admin with ADC:', adcErr);
-          // Safe local fallback: Do not initialize Admin SDK to prevent ADC crash, but warn user
-          console.warn('\n======================================================================');
-          console.warn('[WARNING] No "firebase-service-account.json" file found in your folder.');
-          console.warn('The server-side background listeners and notification logs are disabled.');
-          console.warn('To enable them, follow the guide to download your service account key.');
-          console.warn('======================================================================\n');
-        }
-      } else {
-        console.warn('[NOTIFICATION SERVICE] No Firebase Admin credentials found. Local development will use local_db.json; client-side Firebase Auth remains available.');
+        console.log('[NOTIFICATION SERVICE] Initialized Firebase Admin using local service account key file.');
+      } catch (fileErr) {
+        console.error('[NOTIFICATION SERVICE] Failed to parse local firebase-service-account.json file:', fileErr);
       }
-    } else {
-      app = getApp();
     }
     
-    if (app) {
-      const dbId = firebaseConfig.firestoreDatabaseId;
-      if (dbId) {
-        adminDb = getFirestore(app, dbId);
-      } else {
-        adminDb = getFirestore(app);
-      }
-      isFirebaseAdminInitialized = true;
-      console.log('[NOTIFICATION SERVICE] Firebase Admin successfully initialized for project:', firebaseConfig.projectId, 'databaseId:', dbId);
+    // Priority B: Environment variables (Render Production)
+    if (!app) {
+      const envProjectId = process.env.FIREBASE_PROJECT_ID || firebaseConfig.projectId;
+      const envClientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+      const rawPrivateKey = process.env.FIREBASE_PRIVATE_KEY;
+      const envPrivateKey = rawPrivateKey ? rawPrivateKey.replace(/\\n/g, '\n') : undefined;
 
-      // Perform a quick connectivity/permission check asynchronously to verify access
-      adminDb.collection('applications').limit(1).get()
-        .then(() => {
-          console.log('[NOTIFICATION SERVICE] Firestore Admin connectivity and permissions verified successfully.');
-        })
-        .catch((err) => {
-          console.warn('[NOTIFICATION SERVICE] Firestore database collection "applications" is not accessible:', err.message || err);
-          console.warn('[NOTIFICATION SERVICE] Disabling server-side Firestore operations to run with local JSON DB persistence fallback cleanly.');
-          isFirebaseAdminInitialized = false;
-        });
+      const hasEnvCreds = Boolean(envProjectId && envClientEmail && envPrivateKey);
+
+      if (hasEnvCreds) {
+        try {
+          const serviceAccount = {
+            projectId: envProjectId!,
+            clientEmail: envClientEmail!,
+            privateKey: envPrivateKey!,
+          };
+          app = initializeApp({
+            credential: cert(serviceAccount),
+            projectId: envProjectId
+          });
+          console.log('[NOTIFICATION SERVICE] Initialized Firebase Admin using environment variables (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY).');
+        } catch (envErr) {
+          console.error('[NOTIFICATION SERVICE] Failed to initialize Firebase Admin using environment variables:', envErr);
+        }
+      } else {
+        // Priority C: Neither credential source available
+        const missing: string[] = [];
+        if (!envProjectId) missing.push('FIREBASE_PROJECT_ID');
+        if (!envClientEmail) missing.push('FIREBASE_CLIENT_EMAIL');
+        if (!envPrivateKey) missing.push('FIREBASE_PRIVATE_KEY');
+
+        console.warn('\n======================================================================');
+        console.warn('[WARNING] Firebase Admin server-side credentials are not configured.');
+        console.warn('Neither local "firebase-service-account.json" nor full environment variables were found.');
+        if (missing.length > 0) {
+          console.warn(`Missing environment variables: ${missing.join(', ')}`);
+        }
+        console.warn('Server-side Firestore background operations disabled. Running with local JSON DB persistence fallback cleanly.');
+        console.warn('======================================================================\n');
+      }
     }
   } else {
-    console.warn('[NOTIFICATION SERVICE] No Firebase projectId found. Running in mock DB mode.');
+    app = getApp();
+  }
+
+  if (app) {
+    const dbId = firebaseConfig.firestoreDatabaseId;
+    if (dbId) {
+      adminDb = getFirestore(app, dbId);
+    } else {
+      adminDb = getFirestore(app);
+    }
+    isFirebaseAdminInitialized = true;
+    const activeProjectId = app.options.projectId || firebaseConfig.projectId || 'unknown';
+    console.log('[NOTIFICATION SERVICE] Firebase Admin successfully initialized for project:', activeProjectId, 'databaseId:', dbId || '(default)');
+
+    // Perform a quick connectivity/permission check asynchronously to verify access
+    adminDb.collection('applications').limit(1).get()
+      .then(() => {
+        console.log('[NOTIFICATION SERVICE] Firestore Admin connectivity and permissions verified successfully.');
+      })
+      .catch((err) => {
+        console.warn('[NOTIFICATION SERVICE] Firestore database collection "applications" is not accessible:', err.message || err);
+        console.warn('[NOTIFICATION SERVICE] Disabling server-side Firestore operations to run with local JSON DB persistence fallback cleanly.');
+        isFirebaseAdminInitialized = false;
+      });
   }
 } catch (error) {
   console.error('[NOTIFICATION SERVICE] Firebase Admin initialization failed:', error);
