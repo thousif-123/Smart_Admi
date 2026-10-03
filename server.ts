@@ -309,17 +309,41 @@ Rules:
         parts: [{ text: h.content }]
       }));
 
-      const chat = ai.chats.create({
-        model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
-        history: formattedHistory,
-        config: {
-          systemInstruction,
-          temperature: 0.7,
-        },
-      });
+      const primaryModel = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+      const fallbackModels = [primaryModel, "gemini-1.5-flash", "gemini-2.0-flash", "gemini-2.5-flash"].filter(
+        (m, idx, self) => self.indexOf(m) === idx
+      );
 
-      const response = await chat.sendMessage({ message });
-      res.json({ text: response.text });
+      let lastError: any = null;
+      let responseText: string | null = null;
+
+      for (const currentModel of fallbackModels) {
+        try {
+          const chat = ai.chats.create({
+            model: currentModel,
+            history: formattedHistory,
+            config: {
+              systemInstruction,
+              temperature: 0.7,
+            },
+          });
+
+          const response = await chat.sendMessage({ message });
+          if (response && response.text) {
+            responseText = response.text;
+            break;
+          }
+        } catch (err: any) {
+          lastError = err;
+          console.warn(`[API CHAT] Model "${currentModel}" failed, trying next fallback model if available:`, err?.message || err);
+        }
+      }
+
+      if (responseText) {
+        return res.json({ text: responseText });
+      }
+
+      throw lastError || new Error("All Gemini models failed to respond.");
 
     } catch (error: any) {
       let errorStr = "";
@@ -343,23 +367,22 @@ Rules:
                            errorStr.includes("invalid_argument") ||
                            errorStr.includes("forbidden") ||
                            errorStr.includes("unauthorized") ||
-                           errorStr.includes("key");
+                           errorStr.includes("key") ||
+                           errorStr.includes("quota") ||
+                           errorStr.includes("resource_exhausted") ||
+                           errorStr.includes("429");
 
       if (isApiKeyError) {
-        console.warn('[API CHAT] Gemini API Key is invalid, expired, or missing. Handled gracefully with configuration advice.');
+        console.warn('[API CHAT] Gemini API Key issue or quota exhausted:', errorStr);
         return res.json({
-          text: `### ⚠️ AI Configuration Required
+          text: `### ⚠️ AI Service Notice
+I am **Smart Admi AI**. The configured **Gemini API Key** is invalid, expired, or has reached its API rate/quota limit (${error?.message || 'Quota/Key Error'}).
 
-I am **Smart Admi AI**, your virtual assistant. I am currently unable to process your request because the configured **Gemini API Key** is invalid or has expired.
-
-To resolve this and activate full live AI features:
-1. Open the **Settings** menu (gear icon) in the Google AI Studio interface.
-2. Select **Secrets**.
-3. Locate the \`GEMINI_API_KEY\` secret.
-4. Replace it with a valid, active API key from your Google AI Studio account.
-5. Save your changes.
-
-*If you need help with other parts of the MeritMatrix system, I can still guide you manually!*`
+**To resolve this:**
+1. Check your Gemini API Key in [Google AI Studio](https://aistudio.google.com/app/apikey).
+2. Ensure the key has quota available and the **Generative Language API** is enabled.
+3. Update \`GEMINI_API_KEY\` in your Render Environment settings.
+4. Save and re-deploy.`
         });
       }
 
@@ -374,7 +397,7 @@ To resolve this and activate full live AI features:
       return res.json({
         text: `### 🤖 Smart Admi AI (Offline Mode)
 
-Hello! I am currently running in offline assistance mode due to a temporary service issue.
+Hello! I am currently running in offline assistance mode due to a temporary service issue: \`${error?.message || 'Service Error'}\`
 
 Here is your current session context:
 ${sanitizedContext}
