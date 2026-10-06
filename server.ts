@@ -19,7 +19,8 @@ import {
   detectFraud,
   getFinalDecision,
   generateSOP,
-  isApiKeyValid
+  isApiKeyValid,
+  getCleanApiKey
 } from "./src/lib/gemini";
 import { performForensicAnalysis } from "./src/lib/forensicService";
 import {
@@ -160,6 +161,157 @@ async function startServer() {
     }
   });
 
+  function sanitizeLogMessage(message: string): string {
+    if (!message) return "";
+    let clean = String(message);
+
+    if (process.env.GEMINI_API_KEY) {
+      const key = process.env.GEMINI_API_KEY.trim().replace(/^["']|["']$/g, "").trim();
+      if (key && key.length > 5) {
+        clean = clean.split(key).join("[REDACTED_GEMINI_KEY]");
+      }
+    }
+
+    if (process.env.FIREBASE_PRIVATE_KEY) {
+      const pKey = process.env.FIREBASE_PRIVATE_KEY.trim();
+      if (pKey && pKey.length > 10) {
+        clean = clean.split(pKey).join("[REDACTED_FIREBASE_KEY]");
+      }
+    }
+
+    clean = clean.replace(/Bearer\s+[A-Za-z0-9\-\._~\+\/]+=*/gi, "Bearer [REDACTED_TOKEN]");
+    clean = clean.replace(/key=[A-Za-z0-9_\-]+/gi, "key=[REDACTED_KEY]");
+
+    return clean;
+  }
+
+  function safeLogGeminiError(context: string, error: any, modelName?: string) {
+    const status = error?.status || error?.statusCode || error?.response?.status || "N/A";
+    const code = error?.code || error?.error?.code || "N/A";
+    const type = error?.name || error?.type || "GeminiError";
+    const message = sanitizeLogMessage(error?.message || String(error));
+
+    console.error(`[GEMINI ERROR] [${context}]`, {
+      status,
+      code,
+      type,
+      model: modelName || process.env.GEMINI_MODEL || "gemini-2.5-flash",
+      message
+    });
+  }
+
+  function handleGeminiChatError(res: express.Response, error: any, modelName: string) {
+    safeLogGeminiError('/api/chat', error, modelName);
+
+    const status = error?.status || error?.statusCode || error?.response?.status;
+    const message = (error?.message || String(error)).toLowerCase();
+
+    if (
+      status === 401 ||
+      status === 403 ||
+      message.includes("api key") ||
+      message.includes("api_key") ||
+      message.includes("apikey") ||
+      message.includes("unauthorized") ||
+      message.includes("forbidden") ||
+      message.includes("invalid_argument")
+    ) {
+      return res.status(401).json({
+        error: "Gemini API authentication error. The configured GEMINI_API_KEY is invalid or unauthorized.",
+        status: "auth_error"
+      });
+    }
+
+    if (
+      status === 429 ||
+      message.includes("quota") ||
+      message.includes("rate limit") ||
+      message.includes("resource_exhausted")
+    ) {
+      return res.status(429).json({
+        error: "Gemini API rate limit or quota exceeded. Please check your Google AI Studio quota limits.",
+        status: "quota_error"
+      });
+    }
+
+    if (
+      status === 404 ||
+      message.includes("not found") ||
+      message.includes("model")
+    ) {
+      return res.status(404).json({
+        error: `The configured Gemini AI model ("${modelName}") is unavailable or unsupported.`,
+        status: "model_error"
+      });
+    }
+
+    const safeMsg = sanitizeLogMessage(error?.message || "Temporary service error").substring(0, 150);
+    return res.status(502).json({
+      error: `Google Gemini service is temporarily unavailable (${safeMsg}).`,
+      status: "service_error"
+    });
+  }
+
+  app.get("/api/ai-status", async (req, res) => {
+    const cleanApiKey = getCleanApiKey();
+    const currentModel = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+
+    if (!cleanApiKey) {
+      return res.json({
+        configured: false,
+        provider: "Google Gemini",
+        model: currentModel,
+        status: "not_configured"
+      });
+    }
+
+    try {
+      const ai = new GoogleGenAI({
+        apiKey: cleanApiKey,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          }
+        }
+      });
+
+      const testRes = await ai.models.generateContent({
+        model: currentModel,
+        contents: "ping",
+        config: {
+          maxOutputTokens: 5
+        }
+      });
+
+      if (testRes && testRes.text !== undefined) {
+        return res.json({
+          configured: true,
+          provider: "Google Gemini",
+          model: currentModel,
+          status: "available"
+        });
+      } else {
+        return res.json({
+          configured: true,
+          provider: "Google Gemini",
+          model: currentModel,
+          status: "error",
+          error: "Empty test response from Gemini API"
+        });
+      }
+    } catch (err: any) {
+      safeLogGeminiError("/api/ai-status", err, currentModel);
+      const safeErrorMsg = sanitizeLogMessage(err?.message || "Gemini test request failed").substring(0, 150);
+      return res.json({
+        configured: true,
+        provider: "Google Gemini",
+        model: currentModel,
+        status: "error",
+        error: safeErrorMsg
+      });
+    }
+  });
+
   app.post("/api/chat", async (req, res) => {
     const { message, history } = req.body;
     if (!message) {
@@ -255,17 +407,14 @@ async function startServer() {
       }
 
       // 2. Query Gemini API
-      let apiKey = process.env.GEMINI_API_KEY;
-      // Chat remains useful during local development and when an API key has
-      // not yet been configured. This also prevents the client from showing a
-      // generic connection error for a configuration issue.
-      if (!isApiKeyValid() || !apiKey) {
-        return res.json({
-          text: getOfflineChatReply(message, userContext)
+      const cleanApiKey = getCleanApiKey();
+      if (!cleanApiKey) {
+        console.warn('[API CHAT] GEMINI_API_KEY environment variable is not configured.');
+        return res.status(503).json({
+          error: "Gemini AI is not configured. GEMINI_API_KEY environment variable is missing or invalid on the server.",
+          status: "not_configured"
         });
       }
-
-      const cleanApiKey = apiKey.trim().replace(/^["']|["']$/g, "").trim();
 
       const ai = new GoogleGenAI({
         apiKey: cleanApiKey,
@@ -298,8 +447,6 @@ Rules:
 3. If the user is an "admin", answer overview or system health queries using the "ADMIN STATUS AND METRICS" details.
 4. Keep answers conversational, supportive, elite, and clear. Use Markdown list formats and bold elements to deliver visual hierarchy.`;
 
-      // Gemini chat history must begin with a user turn. The UI greeting is a
-      // bot turn, so omit it instead of sending invalid model-first history.
       const usableHistory = (history || []).filter((h: any) =>
         Boolean(h?.content) && (h.role === 'user' || h.role === 'bot')
       );
@@ -310,12 +457,13 @@ Rules:
       }));
 
       const primaryModel = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-      const fallbackModels = [primaryModel, "gemini-1.5-flash", "gemini-2.0-flash", "gemini-2.5-flash"].filter(
+      const fallbackModels = [primaryModel, "gemini-2.5-flash", "gemini-2.0-flash"].filter(
         (m, idx, self) => self.indexOf(m) === idx
       );
 
       let lastError: any = null;
       let responseText: string | null = null;
+      let usedModel = primaryModel;
 
       for (const currentModel of fallbackModels) {
         try {
@@ -331,11 +479,12 @@ Rules:
           const response = await chat.sendMessage({ message });
           if (response && response.text) {
             responseText = response.text;
+            usedModel = currentModel;
             break;
           }
         } catch (err: any) {
           lastError = err;
-          console.warn(`[API CHAT] Model "${currentModel}" failed, trying next fallback model if available:`, err?.message || err);
+          safeLogGeminiError(`/api/chat (model: ${currentModel})`, err, currentModel);
         }
       }
 
@@ -343,67 +492,10 @@ Rules:
         return res.json({ text: responseText });
       }
 
-      throw lastError || new Error("All Gemini models failed to respond.");
+      return handleGeminiChatError(res, lastError || new Error("All Gemini models failed to respond."), usedModel);
 
     } catch (error: any) {
-      let errorStr = "";
-      try {
-        errorStr = [
-          String(error),
-          error?.message,
-          error?.stack,
-          error?.status,
-          error?.statusText,
-          error?.code,
-          typeof error === 'object' && error !== null ? String(error.message || '') + ' ' + String(error.status || '') : ''
-        ].join(' ').toLowerCase();
-      } catch (e) {
-        errorStr = String(error).toLowerCase();
-      }
-
-      const isApiKeyError = errorStr.includes("api key") || 
-                           errorStr.includes("api_key") || 
-                           errorStr.includes("apikey") || 
-                           errorStr.includes("invalid_argument") ||
-                           errorStr.includes("forbidden") ||
-                           errorStr.includes("unauthorized") ||
-                           errorStr.includes("key") ||
-                           errorStr.includes("quota") ||
-                           errorStr.includes("resource_exhausted") ||
-                           errorStr.includes("429");
-
-      if (isApiKeyError) {
-        console.warn('[API CHAT] Gemini API Key issue or quota exhausted:', errorStr);
-        return res.json({
-          text: `### ⚠️ AI Service Notice
-I am **Smart Admi AI**. The configured **Gemini API Key** is invalid, expired, or has reached its API rate/quota limit (${error?.message || 'Quota/Key Error'}).
-
-**To resolve this:**
-1. Check your Gemini API Key in [Google AI Studio](https://aistudio.google.com/app/apikey).
-2. Ensure the key has quota available and the **Generative Language API** is enabled.
-3. Update \`GEMINI_API_KEY\` in your Render Environment settings.
-4. Save and re-deploy.`
-        });
-      }
-
-      console.error('[API CHAT] Unexpected error in /api/chat:', error);
-
-      // Default fallback if any other unexpected error occurs
-      const sanitizedContext = (userContext || "Guest Access")
-        .replace(/Authenticated User:/gi, '**User:**')
-        .replace(/Role:/gi, '**Role:**')
-        .replace(/UID:/gi, '**UID:**');
-
-      return res.json({
-        text: `### 🤖 Smart Admi AI (Offline Mode)
-
-Hello! I am currently running in offline assistance mode due to a temporary service issue: \`${error?.message || 'Service Error'}\`
-
-Here is your current session context:
-${sanitizedContext}
-
-*If you need further help, please let me know!*`
-      });
+      return handleGeminiChatError(res, error, process.env.GEMINI_MODEL || "gemini-2.5-flash");
     }
   });
 
@@ -434,7 +526,10 @@ ${sanitizedContext}
     }
 
     try {
-      const apiKey = process.env.GEMINI_API_KEY!.trim().replace(/^["']|["']$/g, "").trim();
+      const apiKey = getCleanApiKey();
+      if (!apiKey) {
+        return res.status(503).json({ error: "OCR is unavailable until a valid GEMINI_API_KEY is configured." });
+      }
       const mimeType = rankCard.match(/data:(.*?);/)?.[1] || 'image/jpeg';
       if (!mimeType.startsWith('image/')) {
         return res.status(400).json({ error: "Please upload the rank card as a JPG, PNG, or WEBP image." });
@@ -715,15 +810,10 @@ ${sanitizedContext}
         });
       }
 
-      if (!isApiKeyValid()) {
+      const cleanApiKey = getCleanApiKey();
+      if (!cleanApiKey) {
         throw new Error("Placeholder or missing Gemini API Key detected. Bypassing live API request and using fallback.");
       }
-      let apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error("GEMINI_API_KEY is not defined");
-      }
-
-      const cleanApiKey = apiKey.trim().replace(/^["']|["']$/g, "").trim();
 
       const ai = new GoogleGenAI({
         apiKey: cleanApiKey,

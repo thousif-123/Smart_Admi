@@ -271,7 +271,8 @@ export default function EapcetCollegeRecommendations({ initialRank, studentInter
         const data = await res.json();
         setAiResponse(data.text || 'Unable to generate counseling report. Please try again.');
       } else {
-        throw new Error('Server returned non-ok counseling report status.');
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || errData.message || `Server returned non-ok status ${res.status}.`);
       }
     } catch (err: any) {
       console.error('[AI COUNSELING REPORT] Error:', err);

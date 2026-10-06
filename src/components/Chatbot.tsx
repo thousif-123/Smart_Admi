@@ -60,6 +60,37 @@ export default function Chatbot() {
     }
   }, []);
 
+  const [aiStatus, setAiStatus] = useState<'checking' | 'available' | 'not_configured' | 'error'>('checking');
+  const [aiStatusError, setAiStatusError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkAiStatus = async () => {
+      try {
+        const res = await fetch('/api/ai-status');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'available') {
+            setAiStatus('available');
+            setAiStatusError(null);
+          } else if (data.status === 'not_configured') {
+            setAiStatus('not_configured');
+            setAiStatusError('GEMINI_API_KEY environment variable is missing on the server.');
+          } else {
+            setAiStatus('error');
+            setAiStatusError(data.error || 'Gemini AI service error.');
+          }
+        } else {
+          setAiStatus('error');
+          setAiStatusError(`AI health check returned HTTP ${res.status}`);
+        }
+      } catch (err: any) {
+        setAiStatus('error');
+        setAiStatusError('Failed to reach AI status endpoint.');
+      }
+    };
+    checkAiStatus();
+  }, []);
+
   const toggleListening = () => {
     if (!recognitionRef.current) return;
     if (isListening) {
@@ -113,17 +144,20 @@ export default function Chatbot() {
         })
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Server returned an error');
+        const errorMsg = data.error || data.message || `AI Service Error (${response.status})`;
+        setMessages(prev => [...prev, { role: 'bot', content: `⚠️ ${errorMsg}` }]);
+        return;
       }
 
-      const data = await response.json();
       const aiResponse = data.text;
       
       setMessages(prev => [...prev, { role: 'bot', content: aiResponse || "I'm sorry, I couldn't process that request." }]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Chat error:', error);
-      setMessages(prev => [...prev, { role: 'bot', content: "I'm having trouble connecting right now. Please try again later." }]);
+      setMessages(prev => [...prev, { role: 'bot', content: `⚠️ Network connection error: ${error?.message || 'Unable to communicate with AI server.'}` }]);
     } finally {
       setIsLoading(false);
     }
@@ -163,7 +197,30 @@ export default function Chatbot() {
                   <Bot className="h-5 w-5" />
                   <div>
                     <CardTitle className="text-sm font-bold">Admission Assistant</CardTitle>
-                    <span className="flex items-center gap-1 text-[10px] font-medium text-primary-foreground/80"><span className="h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse" />Live AI</span>
+                    {aiStatus === 'available' && (
+                      <span className="flex items-center gap-1 text-[10px] font-medium text-primary-foreground/80">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse" />
+                        Live AI
+                      </span>
+                    )}
+                    {aiStatus === 'not_configured' && (
+                      <span className="flex items-center gap-1 text-[10px] font-medium text-amber-200" title={aiStatusError || undefined}>
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                        AI Config Required
+                      </span>
+                    )}
+                    {aiStatus === 'error' && (
+                      <span className="flex items-center gap-1 text-[10px] font-medium text-rose-200" title={aiStatusError || undefined}>
+                        <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+                        AI Unavailable
+                      </span>
+                    )}
+                    {aiStatus === 'checking' && (
+                      <span className="flex items-center gap-1 text-[10px] font-medium text-primary-foreground/70">
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground/50 animate-pulse" />
+                        Checking AI...
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-1">

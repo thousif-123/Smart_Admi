@@ -2,9 +2,9 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 let aiClient: GoogleGenAI | null = null;
 
-export function isApiKeyValid(): boolean {
+export function getCleanApiKey(): string | null {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return false;
+  if (!apiKey) return null;
   const clean = apiKey.trim().replace(/^["']|["']$/g, "").trim();
   if (
     clean === "" ||
@@ -14,22 +14,21 @@ export function isApiKeyValid(): boolean {
     clean.startsWith("MY_") ||
     clean.length < 15
   ) {
-    return false;
+    return null;
   }
-  return true;
+  return clean;
 }
 
-function getAiClient(): GoogleGenAI {
-  if (!isApiKeyValid()) {
-    throw new Error("Placeholder or missing Gemini API Key detected. Bypassing live API request and using fallback.");
+export function isApiKeyValid(): boolean {
+  return getCleanApiKey() !== null;
+}
+
+export function getAiClient(): GoogleGenAI {
+  const cleanApiKey = getCleanApiKey();
+  if (!cleanApiKey) {
+    throw new Error("Missing or invalid Gemini API Key detected. Please configure GEMINI_API_KEY in your environment.");
   }
   if (!aiClient) {
-    let apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error("GEMINI_API_KEY environment variable is not defined. Please set your Gemini API key in the Settings > Secrets tab.");
-    }
-    // Clean API Key from whitespace and quotes in case of environment parsing issues
-    const cleanApiKey = apiKey.trim().replace(/^["']|["']$/g, "").trim();
     aiClient = new GoogleGenAI({
       apiKey: cleanApiKey,
       httpOptions: {

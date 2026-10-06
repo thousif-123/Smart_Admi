@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { GraduationCap, Menu, Home, LogIn, UserPlus, LayoutDashboard, FileText, Upload, CheckCircle, LogOut, Shield, User, Sun, Moon, Code, FolderOpen } from 'lucide-react';
+import { GraduationCap, Menu, Home, LogIn, UserPlus, LayoutDashboard, FileText, Upload, CheckCircle, LogOut, Shield, User, Sun, Moon, Code, FolderOpen, Linkedin, Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -190,28 +190,59 @@ export default function Navbar() {
                   </div>
                   <div className="space-y-3 px-1 pb-6">
                     {[
-                      { name: "Shaik Sabiha Sultana", roles: ["Team Leader"], isLeader: true },
-                      { name: "Shaik Ayesha Farheen", roles: ["Team Member"] },
-                      { name: "Seshamshetty Anusha", roles: ["Team Member"] },
-                      { name: "Syed Fayaz", roles: ["Team Member"] },
-                      { name: "Shaik Mohammad Thousif", roles: ["Main Developer", "Team Member"], isMain: true }
+                      { 
+                        name: "Shaik Sabiha Sultana", 
+                        linkedin: "https://linkedin.com/in/shaik-sabiha-sultana", 
+                        github: "https://github.com/shaik-sabiha-sultana" 
+                      },
+                      { 
+                        name: "Shaik Mohammad Thousif", 
+                        linkedin: "https://linkedin.com/in/shaik-mohammad-thousif", 
+                        github: "https://github.com/shaik-mohammad-thousif" 
+                      },
+                      { 
+                        name: "Shaik Ayesha Farheen", 
+                        linkedin: "https://linkedin.com/in/shaik-ayesha-farheen", 
+                        github: "https://github.com/shaik-ayesha-farheen" 
+                      },
+                      { 
+                        name: "Seshamshetty Anusha", 
+                        linkedin: "https://linkedin.com/in/seshamshetty-anusha", 
+                        github: "https://github.com/seshamshetty-anusha" 
+                      },
+                      { 
+                        name: "Syed Fayaz", 
+                        linkedin: "https://linkedin.com/in/syed-fayaz", 
+                        github: "https://github.com/syed-fayaz" 
+                      }
                     ].map((dev) => (
-                      <div key={dev.name} className={`px-3 py-2 flex flex-col gap-2 rounded-lg border transition-all ${dev.isLeader ? 'bg-primary/5 border-primary/20 shadow-sm' : 'bg-muted/30 border-transparent hover:border-primary/20'}`}>
-                        <div className="flex items-center justify-between gap-2">
-                          <div className={`text-sm transition-colors truncate ${dev.isLeader ? 'font-black text-primary tracking-tight' : dev.isMain ? 'text-foreground' : 'text-muted-foreground'}`}>
-                            {dev.name}
-                          </div>
+                      <div key={dev.name} className="px-3 py-2.5 flex flex-col gap-2 rounded-lg border bg-muted/30 border-transparent hover:border-primary/20 transition-all">
+                        <div className="text-sm font-semibold text-foreground truncate">
+                          {dev.name}
                         </div>
-                        <div className="flex flex-wrap gap-1">
-                          {dev.roles.map((role) => (
-                            <Badge 
-                              key={role}
-                              variant={dev.isLeader ? "secondary" : role === "Main Developer" ? "default" : "outline"} 
-                              className="text-[9px] h-4 px-1.5 shrink-0"
+                        <div className="flex items-center gap-2">
+                          {dev.linkedin && (
+                            <a
+                              href={dev.linkedin}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-600/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 hover:bg-blue-600/20 dark:hover:bg-blue-500/30 transition-colors"
                             >
-                              {role}
-                            </Badge>
-                          ))}
+                              <Linkedin className="h-3.5 w-3.5" />
+                              <span>LinkedIn</span>
+                            </a>
+                          )}
+                          {dev.github && (
+                            <a
+                              href={dev.github}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-foreground/10 text-foreground hover:bg-foreground/20 transition-colors"
+                            >
+                              <Github className="h-3.5 w-3.5" />
+                              <span>GitHub</span>
+                            </a>
+                          )}
                         </div>
                       </div>
                     ))}
