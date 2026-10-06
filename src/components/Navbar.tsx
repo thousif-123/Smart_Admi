@@ -107,11 +107,13 @@ export default function Navbar() {
   );
 
   return (
-    <nav className={`flex items-center justify-between sticky top-0 z-50 transition-all duration-500 ${
-      isScrolled 
-        ? "px-6 py-3 border-b bg-background/70 backdrop-blur-md shadow-lg dark:shadow-black/25 border-amber-900/5 dark:border-white/5" 
-        : "px-6 py-5 border-b bg-background/95 backdrop-blur-sm"
-    }`}>
+    <nav
+      className={`flex items-center justify-between sticky top-0 z-50 transition-all duration-500 ${
+        isScrolled
+          ? "px-6 py-3 border-b bg-background/70 backdrop-blur-md shadow-lg dark:shadow-black/25 border-amber-900/5 dark:border-white/5"
+          : "px-6 py-5 border-b bg-background/95 backdrop-blur-sm"
+      }`}
+    >
       <Link to="/" className="flex items-center gap-2">
         <GraduationCap className="h-8 w-8 text-primary" />
         <span className="text-xl font-bold tracking-tight">SmartAdmi</span>
@@ -121,7 +123,7 @@ export default function Navbar() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           className="rounded-full"
         >
           <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -130,7 +132,7 @@ export default function Navbar() {
         </Button>
 
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger 
+          <SheetTrigger
             render={
               <Button variant="ghost" size="icon" className="md:flex">
                 <Menu className="h-6 w-6" />
@@ -138,85 +140,113 @@ export default function Navbar() {
               </Button>
             }
           />
-          <SheetContent side="left" className="w-[300px] sm:w-[350px] flex flex-col p-0 h-screen">
+          <SheetContent
+            side="left"
+            className="w-[300px] sm:w-[350px] flex flex-col p-0 h-screen"
+          >
             <SheetHeader className="border-b p-4 shrink-0">
               <SheetTitle className="flex items-center gap-2">
                 <GraduationCap className="h-6 w-6 text-primary" />
                 <span>SmartAdmi</span>
               </SheetTitle>
             </SheetHeader>
-            
+
             <div className="flex-1 overflow-y-auto min-h-0">
               <div className="p-4 flex flex-col gap-6">
                 <div className="flex flex-col gap-2">
-                  <NavLink to="/" icon={Home}>Home</NavLink>
-                  
+                  <NavLink to="/" icon={Home}>
+                    Home
+                  </NavLink>
+
                   {!user ? (
                     <>
-                      <NavLink to="/login" icon={LogIn}>Login</NavLink>
-                      <NavLink to="/signup" icon={UserPlus}>Sign Up</NavLink>
+                      <NavLink to="/login" icon={LogIn}>
+                        Login
+                      </NavLink>
+                      <NavLink to="/signup" icon={UserPlus}>
+                        Sign Up
+                      </NavLink>
                     </>
                   ) : (
                     <>
-                      {userRole === 'admin' ? (
+                      {userRole === "admin" ? (
                         <>
-                          <NavLink to="/admin" icon={Shield}>Admin Dashboard</NavLink>
+                          <NavLink to="/admin" icon={Shield}>
+                            Admin Dashboard
+                          </NavLink>
                         </>
                       ) : (
                         <>
-                          <NavLink to="/student" icon={LayoutDashboard}>Student Dashboard</NavLink>
-                          <NavLink to="/student/apply" icon={FileText}>Admission Form</NavLink>
-                          <NavLink to="/student/status" icon={CheckCircle}>Application Status</NavLink>
-                          <NavLink to="/student/documents" icon={FolderOpen}>Document Hub</NavLink>
+                          <NavLink to="/student" icon={LayoutDashboard}>
+                            Student Dashboard
+                          </NavLink>
+                          <NavLink to="/student/apply" icon={FileText}>
+                            Admission Form
+                          </NavLink>
+                          <NavLink to="/student/status" icon={CheckCircle}>
+                            Application Status
+                          </NavLink>
+                          <NavLink to="/student/documents" icon={FolderOpen}>
+                            Document Hub
+                          </NavLink>
                         </>
                       )}
                     </>
                   )}
 
-                  <a 
-                    href="/api/project-doc-pdf" 
+                  <a
+                    href="/api/project-doc-pdf"
                     download="SmartAdmi_Project_Documentation.pdf"
                     className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors bg-primary/5 hover:bg-primary/10 text-primary border border-dashed border-primary/30 mt-2 shadow-sm"
                   >
                     <FileText className="h-5 w-5 text-primary" />
-                    <span className="font-bold text-sm">Download Project PDF</span>
+                    <span className="font-bold text-sm">
+                      Download Project PDF
+                    </span>
                   </a>
                 </div>
 
                 <div className="pt-4 border-t">
                   <div className="flex items-center gap-2 px-2 mb-3 text-primary">
                     <Code className="h-5 w-5" />
-                    <span className="font-bold text-sm uppercase tracking-wider">Developers</span>
+                    <span className="font-bold text-sm uppercase tracking-wider">
+                      Developers
+                    </span>
                   </div>
                   <div className="space-y-3 px-1 pb-6">
                     {[
-                      { 
-                        name: "Shaik Sabiha Sultana", 
-                        linkedin: "https://linkedin.com/in/shaik-sabiha-sultana", 
-                        github: "https://github.com/shaik-sabiha-sultana" 
+                      {
+                        name: "Shaik Sabiha Sultana",
+                        linkedin:
+                          "https://linkedin.com/in/shaik-sabiha-sultana",
+                        github: "https://github.com/shaik-sabiha-sultana",
                       },
-                      { 
-                        name: "Shaik Mohammad Thousif", 
-                        linkedin: "https://linkedin.com/in/shaik-mohammad-thousif", 
-                        github: "https://github.com/shaik-mohammad-thousif" 
+                      {
+                        name: "Shaik Mohammad Thousif",
+                        linkedin: "https://www.linkedin.com/in/shaik-mohammad-thousif",
+                        github: "https://github.com/thousif-123",
                       },
-                      { 
-                        name: "Shaik Ayesha Farheen", 
-                        linkedin: "https://linkedin.com/in/shaik-ayesha-farheen", 
-                        github: "https://github.com/shaik-ayesha-farheen" 
+                      {
+                        name: "Shaik Ayesha Farheen",
+                        linkedin:
+                          "https://linkedin.com/in/shaik-ayesha-farheen",
+                        github: "https://github.com/shaik-ayesha-farheen",
                       },
-                      { 
-                        name: "Seshamshetty Anusha", 
-                        linkedin: "https://linkedin.com/in/seshamshetty-anusha", 
-                        github: "https://github.com/seshamshetty-anusha" 
+                      {
+                        name: "Seshamshetty Anusha",
+                        linkedin: "https://linkedin.com/in/seshamshetty-anusha",
+                        github: "https://github.com/seshamshetty-anusha",
                       },
-                      { 
-                        name: "Syed Fayaz", 
-                        linkedin: "https://linkedin.com/in/syed-fayaz", 
-                        github: "https://github.com/syed-fayaz" 
-                      }
+                      {
+                        name: "Syed Fayaz",
+                        linkedin: "https://linkedin.com/in/syed-fayaz",
+                        github: "https://github.com/syed-fayaz",
+                      },
                     ].map((dev) => (
-                      <div key={dev.name} className="px-3 py-2.5 flex flex-col gap-2 rounded-lg border bg-muted/30 border-transparent hover:border-primary/20 transition-all">
+                      <div
+                        key={dev.name}
+                        className="px-3 py-2.5 flex flex-col gap-2 rounded-lg border bg-muted/30 border-transparent hover:border-primary/20 transition-all"
+                      >
                         <div className="text-sm font-semibold text-foreground truncate">
                           {dev.name}
                         </div>
@@ -250,7 +280,7 @@ export default function Navbar() {
                 </div>
               </div>
             </div>
-            
+
             <div className="p-4 border-t bg-muted/20 shrink-0">
               {user ? (
                 <div className="flex flex-col gap-3">
@@ -259,8 +289,12 @@ export default function Navbar() {
                       <User className="h-6 w-6 text-primary" />
                     </div>
                     <div className="flex-1 overflow-hidden">
-                      <p className="text-sm font-bold truncate">{user.displayName || 'User'}</p>
-                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                      <p className="text-sm font-bold truncate">
+                        {user.displayName || "User"}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {user.email}
+                      </p>
                     </div>
                   </div>
                   <button
@@ -274,7 +308,8 @@ export default function Navbar() {
               ) : (
                 <div className="p-4 rounded-xl bg-background border shadow-sm">
                   <p className="text-xs text-muted-foreground text-center">
-                    Need help? Contact our support team at support@meritmatrix.ai
+                    Need help? Contact our support team at
+                    support@meritmatrix.ai
                   </p>
                 </div>
               )}
