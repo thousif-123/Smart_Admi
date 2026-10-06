@@ -223,7 +223,8 @@ export default function Navbar() {
                       },
                       {
                         name: "Shaik Mohammad Thousif",
-                        linkedin: "https://www.linkedin.com/in/shaik-mohammad-thousif",
+                        linkedin:
+                          "https://www.linkedin.com/in/shaik-mohammad-thousif",
                         github: "https://github.com/thousif-123",
                       },
                       {
