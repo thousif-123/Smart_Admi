@@ -233,8 +233,9 @@ export default function Navbar() {
                       },
                       {
                         name: "Syed Fayaz",
-                        linkedin: "https://linkedin.com/in/syed-fayaz",
-                        github: "https://github.com/syed-fayaz",
+                        linkedin:
+                          "https://www.linkedin.com/in/sd-fayaz-10738b3a7",
+                        github: "https://github.com/Fayazsyed77",
                       },
                     ].map((dev) => (
                       <div
@@ -302,7 +303,8 @@ export default function Navbar() {
               ) : (
                 <div className="p-4 rounded-xl bg-background border shadow-xs">
                   <p className="text-xs text-muted-foreground text-center">
-                    Need help? Use the Contact option in the footer for support queries.
+                    Need help? Use the Contact option in the footer for support
+                    queries.
                   </p>
                 </div>
               )}
