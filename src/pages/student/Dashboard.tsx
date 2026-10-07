@@ -4,7 +4,8 @@ import { motion } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { GraduationCap, FileText, Upload, CheckCircle, Clock, LayoutDashboard, User, LogOut, ArrowRight, Loader2, Sparkles, Mail, XCircle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { GraduationCap, FileText, Upload, CheckCircle, Clock, LayoutDashboard, User, LogOut, ArrowRight, Loader2, Sparkles, Mail, XCircle, Bot, Send, MessageSquare, Tag } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '@/lib/firestoreErrorHandler';
@@ -19,6 +20,55 @@ export default function StudentDashboard() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const navigate = useNavigate();
+
+  // AI Copilot Dashboard Widget State
+  const [dashboardCopilotInput, setDashboardCopilotInput] = useState('');
+  const [dashboardCopilotAnswer, setDashboardCopilotAnswer] = useState<string | null>(null);
+  const [dashboardCopilotLoading, setDashboardCopilotLoading] = useState(false);
+  const [dashboardCopilotContext, setDashboardCopilotContext] = useState<string[]>([]);
+
+  const handleAskDashboardCopilot = async (queryText?: string) => {
+    const q = queryText || dashboardCopilotInput.trim();
+    if (!q || dashboardCopilotLoading) return;
+
+    if (!queryText) setDashboardCopilotInput('');
+    setDashboardCopilotLoading(true);
+    setDashboardCopilotAnswer(null);
+
+    try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        if (typeof currentUser.getIdToken === 'function') {
+          try {
+            const idToken = await currentUser.getIdToken();
+            headers['Authorization'] = `Bearer ${idToken}`;
+          } catch (_) {
+            headers['Authorization'] = `Bearer local:${currentUser.uid}`;
+          }
+        } else if (currentUser.uid) {
+          headers['Authorization'] = `Bearer local:${currentUser.uid}`;
+        }
+        if (currentUser.uid) headers['x-user-uid'] = currentUser.uid;
+      }
+
+      const res = await fetch('/api/ai/copilot', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ message: q })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Copilot query failed');
+
+      setDashboardCopilotAnswer(data.answer);
+      setDashboardCopilotContext(data.contextUsed || []);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to query AI Copilot');
+    } finally {
+      setDashboardCopilotLoading(false);
+    }
+  };
 
   const handleDeleteAndReapply = async () => {
     if (!application) return;
@@ -274,6 +324,104 @@ export default function StudentDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* FEATURE 1 — AI Admission Copilot Dashboard Card */}
+        <Card className="mt-6 border-primary/20 bg-gradient-to-br from-card via-card to-primary/5 shadow-md">
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 bg-primary/10 rounded-xl text-primary">
+                  <Bot className="h-6 w-6" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg font-bold flex items-center gap-2">
+                    SmartAdmi AI Copilot
+                    <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+                      Context-Aware
+                    </Badge>
+                  </CardTitle>
+                  <CardDescription>
+                    Ask questions about your application status, submitted marksheets, verification checks, or next steps.
+                  </CardDescription>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            {/* Suggested Question Chips */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <Sparkles className="h-3.5 w-3.5 text-primary" /> Suggested Copilot Questions:
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  "Why is my application pending?",
+                  "Show my document status",
+                  "Which documents are verified?",
+                  "Is any document missing?",
+                  "What should I do next?",
+                  "Which engineering branches suit my academic profile?"
+                ].map((q, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleAskDashboardCopilot(q)}
+                    disabled={dashboardCopilotLoading}
+                    className="text-xs bg-background hover:bg-primary/10 hover:text-primary hover:border-primary/40 border border-border px-3 py-1.5 rounded-full font-medium transition-all text-left truncate max-w-full"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Custom Input */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleAskDashboardCopilot();
+              }}
+              className="flex items-center gap-2 pt-1"
+            >
+              <Input
+                placeholder="Ask Copilot anything about your application..."
+                value={dashboardCopilotInput}
+                onChange={(e) => setDashboardCopilotInput(e.target.value)}
+                disabled={dashboardCopilotLoading}
+                className="bg-background text-sm"
+              />
+              <Button type="submit" disabled={dashboardCopilotLoading || !dashboardCopilotInput.trim()} className="gap-1.5 shrink-0">
+                {dashboardCopilotLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                Ask Copilot
+              </Button>
+            </form>
+
+            {/* Answer Display */}
+            {dashboardCopilotAnswer && (
+              <div className="p-4 rounded-xl bg-card border border-primary/20 space-y-3 animate-in fade-in slide-in-from-top-2">
+                <div className="flex items-center justify-between pb-2 border-b border-border/40">
+                  <span className="text-xs font-bold text-primary flex items-center gap-1.5">
+                    <Sparkles className="h-4 w-4" /> SmartAdmi Copilot Answer
+                  </span>
+                  {dashboardCopilotContext.length > 0 && (
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <span className="text-[10px] text-muted-foreground uppercase font-bold">Data Used:</span>
+                      {dashboardCopilotContext.map((c, i) => (
+                        <Badge key={i} variant="outline" className="text-[9px] py-0 px-1.5 bg-background">
+                          {c}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="text-sm text-foreground whitespace-pre-line leading-relaxed font-sans">
+                  {dashboardCopilotAnswer}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
 
         {/* EAPCET College Recommendations & Rank Predictor */}
         <div className="mt-6 animate-in fade-in slide-in-from-bottom-3 duration-500">

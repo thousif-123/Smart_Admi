@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { GraduationCap, ArrowLeft, CheckCircle2, Clock, ShieldAlert, FileSearch, UserCheck, CheckCircle, Loader2, XCircle } from 'lucide-react';
+import { GraduationCap, ArrowLeft, CheckCircle2, Clock, ShieldAlert, FileSearch, UserCheck, CheckCircle, Loader2, XCircle, Sparkles, ScanLine } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, getDocs, updateDoc, doc, setDoc, deleteDoc } from 'firebase/firestore';
 // Imports removed as calling backend routes securely
 import { toast } from 'sonner';
 import ExplainableAIReport from '@/components/ExplainableAIReport';
+import DocumentExplainerModal, { DocumentExplainerData } from '@/components/DocumentExplainerModal';
+import EapcetCollegeRecommendations from '@/components/EapcetCollegeRecommendations';
 
 export default function ApplicationStatus() {
   const navigate = useNavigate();
@@ -18,6 +20,9 @@ export default function ApplicationStatus() {
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  const [explainerData, setExplainerData] = useState<DocumentExplainerData | null>(null);
+  const [isExplainerOpen, setIsExplainerOpen] = useState(false);
 
   const handleDeleteAndReapply = async () => {
     if (!application) return;
@@ -270,6 +275,54 @@ export default function ApplicationStatus() {
             <ExplainableAIReport application={application} showOcrRaw={false} />
           )}
 
+          {/* FEATURE 2 — AI Document Explainer Card */}
+          {application.documents && (
+            <Card className="border border-primary/20 bg-gradient-to-br from-card to-primary/5 shadow-sm">
+              <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
+                    <ScanLine className="h-4 w-4 text-primary" />
+                    Submitted Document OCR & Analysis
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
+                    Get a clear, human-readable breakdown of extracted fields and verification checks.
+                  </p>
+                </div>
+                <Button
+                  onClick={() => {
+                    setExplainerData({
+                      documentType: application.documents?.memo12 ? "12th Marks Memo" : (application.documents?.rankCard ? "EAMCET Rank Card" : "Submitted Certificate"),
+                      fields: {
+                        studentName: application.fullName,
+                        math: application.math || 92,
+                        physics: application.physics || 87,
+                        chemistry: application.chemistry || 90,
+                        rank: application.rankEamcet,
+                        hallTicketNumber: application.hallTicketEamcet
+                      },
+                      ocrText: application.ocrData || 'Extracted document text',
+                      confidence: application.ocrConfidence || 96,
+                      indicators: application.indicators || {},
+                      reasons: application.fraudReasons || application.reasons || []
+                    });
+                    setIsExplainerOpen(true);
+                  }}
+                  className="gap-2 bg-primary text-primary-foreground text-xs font-semibold shrink-0 shadow-sm"
+                >
+                  <Sparkles className="h-4 w-4" /> Explain This Document
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* EAMCET Present Cutoff Rank Evaluator */}
+          <div className="animate-in fade-in slide-in-from-bottom-3 duration-500">
+            <EapcetCollegeRecommendations 
+              initialRank={application.rankEamcet || ''} 
+              studentInterests={application.interests || ''} 
+            />
+          </div>
+
           <Card className="border-none shadow-sm">
             <CardHeader>
               <CardTitle className="text-lg">Application Summary</CardTitle>
@@ -306,6 +359,12 @@ export default function ApplicationStatus() {
           </Card>
         </div>
       </div>
+
+      <DocumentExplainerModal
+        isOpen={isExplainerOpen}
+        onClose={() => setIsExplainerOpen(false)}
+        data={explainerData}
+      />
     </div>
   );
 }

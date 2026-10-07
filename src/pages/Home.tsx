@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { GraduationCap, ShieldCheck, Zap, ArrowRight, CheckCircle2 } from 'lucide-react';
 import Hero3DObject from '../components/Hero3DObject';
 import Interactive3DCard from '../components/Interactive3DCard';
+import Footer from '../components/Footer';
 
 // Custom 3D Coffee Bean SVG component
 function CoffeeBean({ size = 60, className = "", zDepth = 1.0 }: { size?: number; className?: string; zDepth?: number }) {
@@ -263,29 +264,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-amber-900/10 dark:border-white/10 py-16 px-6 bg-white/50 dark:bg-[#0c0503]/80 relative z-10 backdrop-blur-md overflow-hidden">
-        {/* Subtle Cybernetic Grid Overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(210,180,140,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(210,180,140,0.04)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(210,180,140,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(210,180,140,0.015)_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_at_center,black_70%,transparent_100%)] -z-10" />
-        
-        {/* Subtle drifting visual glow halos */}
-        <div className="absolute -bottom-10 left-10 w-24 h-24 bg-amber-500/8 dark:bg-amber-400/3 rounded-full blur-2xl animate-pulse" />
-        <div className="absolute top-1/4 right-20 w-16 h-16 bg-[#5c382a]/5 dark:bg-[#d2b48c]/3 rounded-full blur-xl animate-pulse [animation-duration:8s]" />
-
-        <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-10 relative z-10">
-          <div className="flex items-center gap-3">
-            <GraduationCap className="h-8 w-8 text-[#5c382a] dark:text-[#d2b48c]" />
-            <span className="text-2xl font-black text-[#311910] dark:text-[#fdfbf7] tracking-tight">SmartAdmi</span>
-          </div>
-          <p className="text-sm text-muted-foreground font-medium">
-            © 2026 SmartAdmi Admission System. All rights reserved.
-          </p>
-          <div className="flex gap-8 text-sm font-semibold text-muted-foreground">
-            <Link to="/privacy" className="hover:text-[#5c382a] dark:hover:text-[#d2b48c] transition-colors">Privacy Policy</Link>
-            <Link to="/terms" className="hover:text-[#5c382a] dark:hover:text-[#d2b48c] transition-colors">Terms of Service</Link>
-            <a href="mailto:skthousif474@gmail.com" className="hover:text-[#5c382a] dark:hover:text-[#d2b48c] transition-colors">Contact</a>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

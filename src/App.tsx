@@ -21,10 +21,12 @@ import DocumentHub from './pages/student/DocumentHub';
 import AdminDashboard from './pages/admin/Dashboard';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import CollegeDirectoryPage from './pages/CollegeDirectoryPage';
 
 // Components
 import Chatbot from './components/Chatbot';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import Background3D from './components/Background3D';
 import { ThemeProvider } from './components/ThemeProvider';
 import { Loader2 } from 'lucide-react';
@@ -131,6 +133,7 @@ export default function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/colleges" element={<CollegeDirectoryPage />} />
             
             {/* Student Routes */}
             <Route path="/student" element={
@@ -163,6 +166,7 @@ export default function App() {
             
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          <Footer />
           <Chatbot />
           <Toaster position="top-right" richColors />
         </div>

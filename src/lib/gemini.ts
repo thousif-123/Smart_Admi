@@ -179,3 +179,136 @@ export async function chatWithAssistant(message: string, history: any[] = []) {
   const response = await chat.sendMessage({ message });
   return response.text;
 }
+
+export async function explainDocument(documentData: any) {
+  const prompt = `You are SmartAdmi AI Document Explainer. Provide a simple, clear, human-readable breakdown of the extracted document OCR information and verification results.
+
+DOCUMENT DATA PROVIDED:
+${JSON.stringify(documentData, null, 2)}
+
+RULES & CRITICAL DISTINCTIONS:
+1. Use ONLY the extracted OCR and verification data supplied above.
+2. NEVER invent marks, document types, or student names.
+3. CRITICAL DISTINCTION:
+   - OCR Extraction means "Information was extracted from the uploaded document image".
+   - Authenticity Verification means "Checking if extracted data matches application entries and security rules".
+   - NEVER claim a document is authentic solely because OCR succeeded.
+   - NEVER claim a document is fraudulent solely because of an OCR scan issue.
+4. Explain any warnings ONLY if actual verification flags or reasons exist in the data.
+5. Keep explanations student-friendly, simple, structured, and helpful. Do not expose sensitive IDs.
+
+Return JSON with:
+- documentType: string (e.g. "12th Marks Memo", "EAMCET Rank Card", etc.)
+- extractionStatus: string (e.g. "Completed")
+- extractedHighlights: array of strings (key extracted fields like subject marks or rank)
+- highestSubject: string or null
+- simpleExplanation: string (2-3 paragraphs written directly to the student explaining what was extracted, how it compares with their application, and what it means)
+- extractionVsVerificationNote: string (1 sentence reinforcing that OCR extraction is separate from authenticity verification)`;
+
+  const ai = getAiClient();
+  const response = await ai.models.generateContent({
+    model,
+    contents: prompt,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          documentType: { type: Type.STRING },
+          extractionStatus: { type: Type.STRING },
+          extractedHighlights: { type: Type.ARRAY, items: { type: Type.STRING } },
+          highestSubject: { type: Type.STRING },
+          simpleExplanation: { type: Type.STRING },
+          extractionVsVerificationNote: { type: Type.STRING }
+        },
+        required: ["documentType", "extractionStatus", "extractedHighlights", "simpleExplanation", "extractionVsVerificationNote"]
+      }
+    }
+  });
+
+  return JSON.parse(response.text);
+}
+
+export async function getAdmissionCopilotResponse(userMessage: string, contextData: any) {
+  const systemInstruction = `You are "SmartAdmi AI Copilot", an intelligent, context-aware admission copilot for the SmartAdmi College Admission & Verification System.
+You are assisting the currently authenticated student regarding THEIR OWN specific application details.
+
+AUTHORIZED STUDENT APPLICATION CONTEXT:
+${JSON.stringify(contextData, null, 2)}
+
+STRICT COPILOT RESPONSE RULES:
+1. Answer ONLY using available verified application data and approved admission information supplied in the context above.
+2. NEVER invent application details, document statuses, verification results, cutoffs, or college info.
+3. NEVER claim admission is guaranteed.
+4. If specific application or document information is unavailable, explicitly state that it is unavailable.
+5. Clearly distinguish between:
+   a) REAL APPLICATION DATA (Status, submitted documents, extracted marks)
+   b) AI EXPLANATION (Analysis of verification status or marks)
+   c) GENERAL ADMISSION GUIDANCE (Next steps, counseling advice)
+6. NEVER expose another user's information or attempt cross-user data lookups.
+7. NEVER make a binding final admission decision — final decisions are made by the college admission board.
+8. Structure answers cleanly using Markdown (bold text, bullet points, numbered steps where appropriate). Keep responses direct, helpful, and polite.`;
+
+  const ai = getAiClient();
+  const response = await ai.models.generateContent({
+    model,
+    contents: userMessage,
+    config: {
+      systemInstruction,
+      temperature: 0.3
+    }
+  });
+
+  return response.text;
+}
+
+export async function detectPresentCollegeCutoff(queryCollege: string, queryBranch: string, category: string = 'OC', year: number = 2026) {
+  const prompt = `You are SmartAdmi College Cutoff AI. Analyze and detect the present cutoff marks/ranks for the specified college, branch, and category.
+
+Query Parameters:
+- College Name / Code: ${queryCollege}
+- Branch / Specialization: ${queryBranch}
+- Category: ${category} (OC/BC/SC/ST/EWS)
+- Target Academic Year: ${year}
+
+Analyze typical AP/Telangana EAMCET / EAPCET cutoff trends, competition shifts, and seat allocation parameters for this college.
+
+Return structured JSON with:
+- collegeName: string
+- branch: string
+- targetYear: number (e.g. ${year})
+- estimatedCutoffRank: number (estimated 2026 cutoff rank)
+- previousYearCutoffRank: number (2025 cutoff rank)
+- category: string
+- competitionTrend: string ("Rising", "Stable", or "Dropping")
+- reasoning: string (2-3 concise sentences explaining the cutoff trends, category shifts, and counseling advice)
+- safeRankRange: string (e.g. "Rank 1 to 4,500")`;
+
+  const ai = getAiClient();
+  const response = await ai.models.generateContent({
+    model,
+    contents: prompt,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          collegeName: { type: Type.STRING },
+          branch: { type: Type.STRING },
+          targetYear: { type: Type.INTEGER },
+          estimatedCutoffRank: { type: Type.INTEGER },
+          previousYearCutoffRank: { type: Type.INTEGER },
+          category: { type: Type.STRING },
+          competitionTrend: { type: Type.STRING },
+          reasoning: { type: Type.STRING },
+          safeRankRange: { type: Type.STRING }
+        },
+        required: ["collegeName", "branch", "targetYear", "estimatedCutoffRank", "previousYearCutoffRank", "category", "competitionTrend", "reasoning", "safeRankRange"]
+      }
+    }
+  });
+
+  return JSON.parse(response.text);
+}
+
+

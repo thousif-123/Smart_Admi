@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { GraduationCap, Menu, Home, LogIn, UserPlus, LayoutDashboard, FileText, Upload, CheckCircle, LogOut, Shield, User, Sun, Moon, Code, FolderOpen, Linkedin, Github } from 'lucide-react';
+import { GraduationCap, Menu, Home, LogIn, UserPlus, LayoutDashboard, FileText, Upload, CheckCircle, LogOut, Shield, User, Sun, Moon, Code, FolderOpen, Linkedin, Github, Mail, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -194,16 +194,9 @@ export default function Navbar() {
                     </>
                   )}
 
-                  <a
-                    href="/api/project-doc-pdf"
-                    download="SmartAdmi_Project_Documentation.pdf"
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors bg-primary/5 hover:bg-primary/10 text-primary border border-dashed border-primary/30 mt-2 shadow-sm"
-                  >
-                    <FileText className="h-5 w-5 text-primary" />
-                    <span className="font-bold text-sm">
-                      Download Project PDF
-                    </span>
-                  </a>
+                  <NavLink to="/colleges" icon={Building2}>
+                    AP Colleges & Placements
+                  </NavLink>
                 </div>
 
                 <div className="pt-4 border-t">
@@ -307,10 +300,9 @@ export default function Navbar() {
                   </button>
                 </div>
               ) : (
-                <div className="p-4 rounded-xl bg-background border shadow-sm">
+                <div className="p-4 rounded-xl bg-background border shadow-xs">
                   <p className="text-xs text-muted-foreground text-center">
-                    Need help? Contact our support team at
-                    support@meritmatrix.ai
+                    Need help? Use the Contact option in the footer for support queries.
                   </p>
                 </div>
               )}
