@@ -217,9 +217,8 @@ export default function Navbar() {
                     {[
                       {
                         name: "Shaik Sabiha Sultana",
-                        linkedin:
-                          "https://linkedin.com/in/shaik-sabiha-sultana",
-                        github: "https://github.com/shaik-sabiha-sultana",
+                        linkedin: "https://www.linkedin.com/in/sabiha-shaik-",
+                        github: "https://github.com/codebysabiha",
                       },
                       {
                         name: "Shaik Mohammad Thousif",
@@ -230,13 +229,14 @@ export default function Navbar() {
                       {
                         name: "Shaik Ayesha Farheen",
                         linkedin:
-                          "https://linkedin.com/in/shaik-ayesha-farheen",
-                        github: "https://github.com/shaik-ayesha-farheen",
+                          "https://www.linkedin.com/in/ayesha-farheen-shaik-60b586381",
+                        github: "https://github.com/Ayesha-9555",
                       },
                       {
                         name: "Seshamshetty Anusha",
-                        linkedin: "https://linkedin.com/in/seshamshetty-anusha",
-                        github: "https://github.com/seshamshetty-anusha",
+                        linkedin:
+                          "https://www.linkedin.com/in/sri-naidu-0841a0375",
+                        github: "https://github.com/srinaidu0114",
                       },
                       {
                         name: "Syed Fayaz",
